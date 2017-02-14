@@ -30,6 +30,7 @@ $(function(){
 		$qian_wrap = $("#qian_wrap"),
 		$result_btn = $(".result_btn"),
 		$qian_result = $(".qian_result"),
+		$waiting = $("#waiting"),
 		$result_inner = $(".result_inner");
 
 	// 抽签
@@ -40,9 +41,13 @@ $(function(){
 		jieqian(qian);
 	});
 
+	$(".open_btn").click(function(){
+		$(".open").fadeOut(300);
+	});
+
 	// 抽签函数
 	function chouqian(){
-		var random = parseInt(Math.random() * 10);
+		var random = Math.floor(Math.random() * 10);
 		qian = data[random] ? data[random] : data[random % data.length];
 
 		$qian_wrap.addClass('hide');
@@ -51,10 +56,10 @@ $(function(){
 		$chouqian.addClass("hide");
 
 		wxShare({
-			shareTitle: "2017爱情运势签",
-			shareDesc: "我抽到的是"+ qian +"，你呢？",
-			shareImg: "http://powertogo6.k-run.cn/logo.jpg",
-			shareLink: "http://powertogo6.k-run.cn/"
+			shareTitle: "本人朋友中单身女生联系方式.doc",
+			shareDesc: "哈哈，我抽到的是"+ qian +"，你呢？",
+			shareImg: "http://love.fotomen.cn/logo.jpg",
+			shareLink: "http://love.fotomen.k-run.cn/"
 		});
 	}
 
@@ -70,7 +75,16 @@ $(function(){
 
 		console.log(ran);
 
-		renderImg(img, $img.attr("data-color"));
+		var image = new Image();
+		// 这样做是为了能让canvas跨域访问图片
+		image.crossOrigin = "Anonymous";
+		image.onload = function() {
+			renderImg(image, $img.attr("data-color"));
+		}
+		image.src = $img.attr("src");
+		$waiting.show();
+
+		// renderImg(img, $img.attr("data-color"));
 	}
 
 	// 合成图文
@@ -80,8 +94,7 @@ $(function(){
 		// canvasH = $chouqian.height() * 2,
 		$canvas = $(canvas),
 		$showImg = $("#showImg"),
-		$renderdImg = $(".renderdImg"),
-		$waiting = $("#waiting");
+		$renderdImg = $(".renderdImg");
 
 	function renderImg(img, fontColor){
 		console.log(fontColor);
@@ -148,7 +161,7 @@ $(function(){
 		// 绘制文字
 		for(var i = 0, length = text.length; i < length; i++) {
 			var word = text[i];
-			ctx.font = "bold 15px '宋体'";
+			ctx.font = "normal 15px '宋体'";
 			ctx.fillStyle = fontColor;
 			ctx.textBaseline = "top";
 			if (word === "，") {
@@ -163,14 +176,14 @@ $(function(){
 		}
 
 		// 绘制二维码
-		ctx.drawImage(qr_code, 30, canvasH - 80, 80, 80);
+		ctx.drawImage(qr_code, 30, canvasH - (360*90/280), 90, 360*90/280);
 
 		var dataurl = canvas.toDataURL("image/png"),
 		    imagedata = encodeURIComponent(dataurl);
 
 		$renderdImg.attr("src",dataurl);
-		$("#showImg").css("background-image", "url("+ dataurl +")");
-		$waiting.show();
+		$showImg.css("background-image", "url("+ dataurl +")");
+		// $waiting.show();
 
 		// 上传到服务器，返回一个图片，因为安卓系统微信中不能长按保存dataUrl形式的图片
 		$.post("http://h5.powertogo6.k-run.cn/upload.do",{
@@ -179,9 +192,11 @@ $(function(){
 			console.log(data);
 			if(data.status == 1000){
 				$renderdImg.attr("src",data.thumb);
+				// $showImg.css("background-image", "url("+ data.thumb +")");
 				$waiting.fadeOut(300);
 			}
 			else{
+				$waiting.hide();
 				alert("图片生成失败，请重试");
 			}
 		});
@@ -219,10 +234,10 @@ $(function(){
 	// 微信分享
 	wx.ready(function(){
 		wxShare({
-			shareTitle: "2017爱情运势签",
-			shareDesc: "我抽到的是爱情上上签，你呢？",
-			shareImg: "http://powertogo6.k-run.cn/logo.jpg",
-			shareLink: "http://powertogo6.k-run.cn/"
+			shareTitle: "本人朋友中单身女生联系方式.doc",
+			shareDesc: "哈哈，我抽到的是爱情上上签，你呢？",
+			shareImg: "http://love.fotomen.cn/logo.jpg",
+			shareLink: "http://love.fotomen.cn/"
 		});
 	});
 
