@@ -55,11 +55,16 @@ $(function(){
 	function jieqian(qian){
 		$("#container1").fadeOut(400);
 		// $("#container2").css("background","url(img/1.jpg) center center/cover no-repeat");
-		renderImg($("#container3 img").eq(3).get(0));
+
+		var $imgs = $("#container3 img"),
+			ran = Math.round(Math.random() * $imgs.length);
+		console.log(ran);
+		renderImg($imgs.eq(ran).get(0));
 	}
 
 	// 合成图文
 	var canvas = document.getElementById("canvas"),
+		qr_code = document.getElementById("qr_code"),
 		canvasW = $chouqian.width() * 2,
 		canvasH = $chouqian.height() * 2,
 		$canvas = $(canvas),
@@ -90,12 +95,14 @@ $(function(){
 			// 文字间的间隔
 			space = 30,
 			// 文字的行高
-			lineHeight = 40;
+			lineHeight = 42;
 
 		console.log(random);
 
+		// 绘制背景大图
 		ctx.drawImage(img, 0, 0, canvasW, canvasH);
 
+		// 绘制文字
 		for(var i = 0, length = text.length; i < length; i++) {
 			var word = text[i];
 			ctx.font = "bold 28px '宋体'";
@@ -103,7 +110,8 @@ $(function(){
 			ctx.textBaseline = "top";
 			if (word === "，") {
 				line ++;
-				posX = startX + line * space;
+				// posX = startX + line * space;
+				posX = startX;
 				posY += lineHeight;
 				continue;
 			}
@@ -111,12 +119,16 @@ $(function(){
 			posX += space;
 		}
 
+		// 绘制二维码
+		ctx.drawImage(qr_code, 15, canvasH-95, 80, 80);
+
 		var dataurl = canvas.toDataURL("image/png"),
 		    imagedata = encodeURIComponent(dataurl);
 
 		$renderdImg.attr("src",dataurl);
 		$waiting.show();
 
+		// 上传到服务器，返回一个图片，因为安卓系统微信中不能长按保存dataUrl形式的图片
 		$.post("http://h5.powertogo6.k-run.cn/upload.do",{
 			imgContent: dataurl.split(",")[1]
 		},function(data){

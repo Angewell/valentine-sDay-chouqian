@@ -213,6 +213,9 @@ html,body {
 	left: 0;
 	width: 100%;
 }
+#qr_code {
+	display: none;
+}
 #waiting {
 	display: none;
 	position: absolute;
