@@ -49,64 +49,107 @@ $(function(){
 		$result_inner.text(qian);
 		$qian_result.addClass('show');
 		$chouqian.addClass("hide");
+
+		wxShare({
+			shareTitle: "2017爱情运势签",
+			shareDesc: "我抽到的是"+ qian +"，你呢？",
+			shareImg: "http://powertogo6.k-run.cn/logo.jpg",
+			shareLink: "http://powertogo6.k-run.cn/"
+		});
 	}
 
 	// 解签函数
 	function jieqian(qian){
-		$("#container1").fadeOut(400);
+		$("#container1").hide();
 		// $("#container2").css("background","url(img/1.jpg) center center/cover no-repeat");
 
 		var $imgs = $("#container3 img"),
-			ran = Math.round(Math.random() * $imgs.length);
+			ran = Math.floor(Math.random() * $imgs.length),
+			$img = $imgs.eq(ran),
+			img = $img.get(0);
+
 		console.log(ran);
-		renderImg($imgs.eq(ran).get(0));
+
+		renderImg(img, $img.attr("data-color"));
 	}
 
 	// 合成图文
 	var canvas = document.getElementById("canvas"),
 		qr_code = document.getElementById("qr_code"),
-		canvasW = $chouqian.width() * 2,
-		canvasH = $chouqian.height() * 2,
+		// canvasW = $chouqian.width() * 2,
+		// canvasH = $chouqian.height() * 2,
 		$canvas = $(canvas),
+		$showImg = $("#showImg"),
 		$renderdImg = $(".renderdImg"),
 		$waiting = $("#waiting");
 
-	function renderImg(img){
-		canvas.width = canvasW;
-		canvas.height = canvasH;
+	function renderImg(img, fontColor){
+		console.log(fontColor);
+		console.log(img.width+"***"+img.height);
 
-		// 缩放canvas，以全屏显示
-		$canvas.css({
-			"-webkit-transform": "scale(0.5)",
-			"transform": "scale(0.5)"
-		});
+		var maxSize = 600,
+			oW = img.width,
+			oH = img.height,
+			canvasW,
+			canvasH;
+
+		// 横向图片
+		if (oW >= oH) {
+			if (oW > maxSize) {
+				canvasW = maxSize;
+				canvasH = oH * (maxSize/oW);
+			}
+			else {
+				canvasW = oW;
+				canvasH = oH;
+			}
+		}
+		// 竖向图片
+		else{
+			if (oH > maxSize) {
+				canvasH = maxSize;
+				canvasW = oW * (maxSize/oH);
+			}
+			else {
+				canvasW = oW;
+				canvasH = oH;
+			}
+		}
+
+		// 给canvas留15像素的白边
+		canvas.width = canvasW + 30;
+		canvas.height = canvasH + 30;
 
 		var ctx = canvas.getContext("2d"),
-			random = Math.round(Math.random() * results.length),
+			random = Math.floor(Math.random() * results.length),
 			text = results[random],
 			// 开始写入文字的位置
-			startX = 50,
-			startY = 150,
+			startX = 70,
+			startY = 100,
 			// 当前写入文字的位置
 			posX = startX,
 			posY = startY,
 			// 第几行文字
 			line = 0,
 			// 文字间的间隔
-			space = 30,
+			space = 17,
 			// 文字的行高
-			lineHeight = 42;
+			lineHeight = 25;
 
 		console.log(random);
 
+		// 绘制白色背景
+		ctx.fillStyle = "white";
+		ctx.fillRect(0, 0, canvasW + 30, canvasH + 30);
+
 		// 绘制背景大图
-		ctx.drawImage(img, 0, 0, canvasW, canvasH);
+		ctx.drawImage(img, 15, 15, canvasW, canvasH);
 
 		// 绘制文字
 		for(var i = 0, length = text.length; i < length; i++) {
 			var word = text[i];
-			ctx.font = "bold 28px '宋体'";
-			ctx.fillStyle = "black";
+			ctx.font = "bold 15px '宋体'";
+			ctx.fillStyle = fontColor;
 			ctx.textBaseline = "top";
 			if (word === "，") {
 				line ++;
@@ -120,12 +163,13 @@ $(function(){
 		}
 
 		// 绘制二维码
-		ctx.drawImage(qr_code, 15, canvasH-95, 80, 80);
+		ctx.drawImage(qr_code, 30, canvasH - 80, 80, 80);
 
 		var dataurl = canvas.toDataURL("image/png"),
 		    imagedata = encodeURIComponent(dataurl);
 
 		$renderdImg.attr("src",dataurl);
+		$("#showImg").css("background-image", "url("+ dataurl +")");
 		$waiting.show();
 
 		// 上传到服务器，返回一个图片，因为安卓系统微信中不能长按保存dataUrl形式的图片
@@ -140,6 +184,63 @@ $(function(){
 			else{
 				alert("图片生成失败，请重试");
 			}
+		});
+	}
+
+	/**
+	 * 微信认证
+	 */
+	(function wxGenerate() {
+		$.post("http://123.206.66.193/generate",{
+			url: window.location.href.split('#')[0]
+		},function(data){
+			data = JSON.parse(data);
+
+			console.log(data);
+
+			if(data.status == "1000") {
+				wx.config({
+					debug : false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+					appId : 'wx4c166202e798d4cc',  // 必填，公众号的唯一标识
+					timestamp : data.timestamp,  // 必填，生成签名的时间戳
+					nonceStr : data.noncestr,   // 必填，生成签名的随机串
+					signature : data.signature, // 必填，签名，见附录1
+					jsApiList : [ 'checkJsApi', 'onMenuShareTimeline', 'onMenuShareAppMessage' ]
+				// 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+				});
+			} 
+			// 如果认证失败，就再次认证直到成功为止
+			else {
+				wxGenerate();
+			}
+		});
+	})();
+
+	// 微信分享
+	wx.ready(function(){
+		wxShare({
+			shareTitle: "2017爱情运势签",
+			shareDesc: "我抽到的是爱情上上签，你呢？",
+			shareImg: "http://powertogo6.k-run.cn/logo.jpg",
+			shareLink: "http://powertogo6.k-run.cn/"
+		});
+	});
+
+	// 微信分享函数
+	function wxShare(obj){
+		// 分享到朋友圈 配置
+		wx.onMenuShareTimeline({
+		    title: obj.shareTitle, // 分享标题
+		    link: obj.shareLink, // 分享链接
+		    imgUrl: obj.shareImg // 分享图标
+		});
+
+		// 分享给朋友 配置
+		wx.onMenuShareAppMessage({
+		    title: obj.shareTitle, // 分享标题
+		    desc: obj.shareDesc, // 分享描述
+		    link: obj.shareLink, // 分享链接
+		    imgUrl: obj.shareImg // 分享图标
 		});
 	}
 });
