@@ -54,53 +54,37 @@ $(function(){
 		$result_inner.text(qian);
 		$qian_result.addClass('show');
 		$chouqian.addClass("hide");
-
-		wxShare({
-			shareTitle: "本人朋友中单身女生联系方式.doc",
-			shareDesc: "哈哈，我抽到的是"+ qian +"，你呢？",
-			shareImg: "http://love.fotomen.cn/logo.jpg",
-			shareLink: "http://love.fotomen.k-run.cn/"
-		});
 	}
 
 	// 解签函数
 	function jieqian(qian){
 		$("#container1").hide();
-		// $("#container2").css("background","url(img/1.jpg) center center/cover no-repeat");
 
 		var $imgs = $("#container3 img"),
 			ran = Math.floor(Math.random() * $imgs.length),
 			$img = $imgs.eq(ran),
 			img = $img.get(0);
 
-		console.log(ran);
-
 		var image = new Image();
 		// 这样做是为了能让canvas跨域访问图片
 		image.crossOrigin = "Anonymous";
+		// 先监听load事件，再设置src属性
 		image.onload = function() {
 			renderImg(image, $img.attr("data-color"));
 		}
 		image.src = $img.attr("src");
 		$waiting.show();
-
-		// renderImg(img, $img.attr("data-color"));
 	}
 
 	// 合成图文
 	var canvas = document.getElementById("canvas"),
 		qr_code = document.getElementById("qr_code"),
-		// canvasW = $chouqian.width() * 2,
-		// canvasH = $chouqian.height() * 2,
-		$canvas = $(canvas),
 		$showImg = $("#showImg"),
 		$renderdImg = $(".renderdImg");
 
 	function renderImg(img, fontColor){
-		console.log(fontColor);
-		console.log(img.width+"***"+img.height);
-
 		var maxSize = 600,
+			// 原始图片的宽高
 			oW = img.width,
 			oH = img.height,
 			canvasW,
@@ -142,8 +126,6 @@ $(function(){
 			// 当前写入文字的位置
 			posX = startX,
 			posY = startY,
-			// 第几行文字
-			line = 0,
 			// 文字间的间隔
 			space = 17,
 			// 文字的行高
@@ -165,8 +147,6 @@ $(function(){
 			ctx.fillStyle = fontColor;
 			ctx.textBaseline = "top";
 			if (word === "，") {
-				line ++;
-				// posX = startX + line * space;
 				posX = startX;
 				posY += lineHeight;
 				continue;
@@ -183,79 +163,6 @@ $(function(){
 
 		$renderdImg.attr("src",dataurl);
 		$showImg.css("background-image", "url("+ dataurl +")");
-		// $waiting.show();
-
-		// 上传到服务器，返回一个图片，因为安卓系统微信中不能长按保存dataUrl形式的图片
-		$.post("http://h5.powertogo6.k-run.cn/upload.do",{
-			imgContent: dataurl.split(",")[1]
-		},function(data){
-			console.log(data);
-			if(data.status == 1000){
-				$renderdImg.attr("src",data.thumb);
-				// $showImg.css("background-image", "url("+ data.thumb +")");
-				$waiting.fadeOut(300);
-			}
-			else{
-				$waiting.hide();
-				alert("图片生成失败，请重试");
-			}
-		});
-	}
-
-	/**
-	 * 微信认证
-	 */
-	(function wxGenerate() {
-		$.post("http://123.206.66.193/generate",{
-			url: window.location.href.split('#')[0]
-		},function(data){
-			data = JSON.parse(data);
-
-			console.log(data);
-
-			if(data.status == "1000") {
-				wx.config({
-					debug : false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
-					appId : 'wx4c166202e798d4cc',  // 必填，公众号的唯一标识
-					timestamp : data.timestamp,  // 必填，生成签名的时间戳
-					nonceStr : data.noncestr,   // 必填，生成签名的随机串
-					signature : data.signature, // 必填，签名，见附录1
-					jsApiList : [ 'checkJsApi', 'onMenuShareTimeline', 'onMenuShareAppMessage' ]
-				// 必填，需要使用的JS接口列表，所有JS接口列表见附录2
-				});
-			} 
-			// 如果认证失败，就再次认证直到成功为止
-			else {
-				wxGenerate();
-			}
-		});
-	})();
-
-	// 微信分享
-	wx.ready(function(){
-		wxShare({
-			shareTitle: "本人朋友中单身女生联系方式.doc",
-			shareDesc: "哈哈，我抽到的是爱情上上签，你呢？",
-			shareImg: "http://love.fotomen.cn/logo.jpg",
-			shareLink: "http://love.fotomen.cn/"
-		});
-	});
-
-	// 微信分享函数
-	function wxShare(obj){
-		// 分享到朋友圈 配置
-		wx.onMenuShareTimeline({
-		    title: obj.shareTitle, // 分享标题
-		    link: obj.shareLink, // 分享链接
-		    imgUrl: obj.shareImg // 分享图标
-		});
-
-		// 分享给朋友 配置
-		wx.onMenuShareAppMessage({
-		    title: obj.shareTitle, // 分享标题
-		    desc: obj.shareDesc, // 分享描述
-		    link: obj.shareLink, // 分享链接
-		    imgUrl: obj.shareImg // 分享图标
-		});
+		$waiting.fadeOut(300);
 	}
 });
