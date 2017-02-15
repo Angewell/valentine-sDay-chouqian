@@ -17,8 +17,8 @@ html,body {
 	height: 100%;
 	max-width: 640px;
 	background: url(../img/bg.jpg);
-	-webkit-transfrom: translateX(-50%);
-	transfrom: translateX(-50%);
+	-webkit-transform: translateX(-50%);
+	transform: translateX(-50%);
 }
 .open_inner {
 	position: absolute;
